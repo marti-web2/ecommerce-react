@@ -1,0 +1,68 @@
+type Book 
+@model(subscriptions: null)
+@auth(rules: [
+{allow: groups, groups: ["Admin"]}
+{allow: private, operations: [read]}
+{allow: public, operations: [read], provider: iam}
+]) {
+id: ID!
+title: String!
+description: String
+image: String
+author: String
+featured: Boolean
+price: Float
+orders: [BookOrder] @connection(keyName: "byBook", fields: ["id"])
+}
+
+type BookOrder
+@model(subscriptions: null)
+@key(name: "byBook", fields: ["bookID", "createdAt"])
+@auth(rules: [
+{allow: groups, groups: ["Admin"]}
+{allow: private, operations: [read]}
+{allow: public, operations: [read], provider: iam}
+]) {
+id: ID!
+bookID: ID!
+book: Book @connection(fields: ["bookID"])
+createdAt: AWSDateTime!
+}
+
+type Order
+@model(subscriptions: null)
+@auth(rules: [
+{allow: groups, groups: ["Admin"]}
+{allow: private, operations: [read]}
+{allow: public, operations: [read], provider: iam}
+]) {
+id: ID!
+createdAt: AWSDateTime!
+updatedAt: AWSDateTime!
+status: String
+total: Float
+items: [OrderItem] @connection(keyName: "byOrder", fields: ["id"])
+}
+
+type Mutation {
+createOrder(input: CreateOrderInput!): Order @aws_subscribe(mutations: ["createOrder"])
+}
+
+type OrderItem
+@model(subscriptions: null)
+@key(name: "byOrder", fields: ["orderID", "createdAt"])
+@auth(rules: [
+{allow: groups, groups: ["Admin"]}
+{allow: private, operations: [read]}
+{allow: public, operations: [read], provider: iam}
+]) {
+id: ID!
+orderID: ID!
+order: Order @connection(fields: ["orderID"])
+createdAt: AWSDateTime!
+bookID: ID!
+book: Book @connection(fields: ["bookID"])
+quantity: Int
+price: Float
+}
+])
